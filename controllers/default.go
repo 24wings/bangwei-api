@@ -16,6 +16,6 @@ func (c *MainController) Get() {
 
 
 type ErrorResponse struct{
-	Status int
-	Message string
+	Ok bool
+	Data string
 }

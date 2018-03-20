@@ -22,6 +22,7 @@ func (c *UsersController) URLMapping() {
 	c.Mapping("GetAll", c.GetAll)
 	c.Mapping("Put", c.Put)
 	c.Mapping("Delete", c.Delete)
+	// c.Mapping("Signin",c.Sign)
 }
 
 // Post ...
@@ -165,16 +166,50 @@ func (c *UsersController) Delete() {
 	c.ServeJSON()
 }
 
-func (c *UsersController) Login(){
-	phone :=c.GetString("phone");
-	password := c.GetString("password")
-	v,err :=	models.GetUserByPhone(phone)
+func (c *UsersController) Signin(){
+	Phone :=c.GetString("Phone");
+	Password := c.GetString("password")
+	v,err :=	models.GetUserByPhone(Phone)
 	if(err!=nil){
-		if (v!=nil&& v.Password ==password){
+		if (v!=nil&& v.Password ==Password){
 			c.Data["json"]=v
 		
 		}else{
-			c.Data["json"] =ErrorResponse{Status:403,Message:"用户名或密码错误"}
+			c.Data["json"] =ErrorResponse{Ok:false,Data:"用户名或密码错误"}
+		}
+		
+	}else{
+		c.Data["json"]=err.Error()
+	   
+	}
+	   
+	   
+   	c.ServeJSON()
+}
+
+
+func (c *UsersController) Signup(){
+	var postUser models.Users
+	
+	
+	json.Unmarshal(c.Ctx.Input.RequestBody, &postUser)
+	userOld,err :=	models.GetUserByPhone(postUser.Phone)
+
+	
+	if(err!=nil){
+		if (userOld!=nil){
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"该手机号已经注册+"}
+		
+		}else{
+		newUser,err	:=models.AddUsers(&postUser); if err==nil{
+			c.Data["json"] =newUser
+			
+		}else{
+			c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
+		}
+		
+
+			
 		}
 		
 	}else{
