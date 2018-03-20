@@ -12,7 +12,7 @@ import (
 
 type Users struct {
 	Id   int64 `orm:"auto"`
-	Name int
+	// Name int
 	Phone string
 	Password string
  	// createDt time.Time
@@ -47,7 +47,7 @@ func GetUsersById(id int64) (v *Users, err error) {
 func GetUserByPhone(phone string)(v *Users,err error){
 	o:=orm.NewOrm()
 	v = &Users{Phone:phone}
-	if err = o.QueryTable(new(Users)).Filter("phone",phone).RelatedSel().One(v); err == nil {
+	if err = o.QueryTable(new(Users)).Filter("Phone",phone).RelatedSel().One(v); err == nil {
 		return v,nil
 	}
 	return  nil,err

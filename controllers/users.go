@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"encoding/json"
 	"errors"
 	"github.com/24wings/bangwei-api/models"
@@ -15,6 +16,7 @@ type UsersController struct {
 	beego.Controller
 }
 
+
 // URLMapping ...
 func (c *UsersController) URLMapping() {
 	c.Mapping("Post", c.Post)
@@ -24,6 +26,7 @@ func (c *UsersController) URLMapping() {
 	c.Mapping("Delete", c.Delete)
 	// c.Mapping("Signin",c.Sign)
 }
+
 
 // Post ...
 // @Title Post
@@ -167,24 +170,25 @@ func (c *UsersController) Delete() {
 }
 
 func (c *UsersController) Signin(){
+	fmt.Println("signin")
 	Phone :=c.GetString("Phone");
-	Password := c.GetString("password")
+	Password := c.GetString("Password")
 	v,err :=	models.GetUserByPhone(Phone)
-	if(err!=nil){
-		if (v!=nil&& v.Password ==Password){
-			c.Data["json"]=v
-		
+	
+	if(err == nil){
+		if (v!=nil && v.Password== Password){	
+			c.Data["json"] =UserResponse{Ok:true,Data:v}
 		}else{
-			c.Data["json"] =ErrorResponse{Ok:false,Data:"用户名或密码错误"}
+			c.Data["json"]=ErrorResponse{Ok:true,Data:"用户名或密码错误"}
 		}
-		
+	
 	}else{
-		c.Data["json"]=err.Error()
-	   
+		c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
 	}
+	fmt.Println("en")
 	   
-	   
-   	c.ServeJSON()
+	   c.ServeJSON()
+	   return
 }
 
 
@@ -220,3 +224,21 @@ func (c *UsersController) Signup(){
 	   
    	c.ServeJSON()
 }
+func (c *UsersController) ForgotPassword(){
+	// Phone :=c.GetString("Phone")
+	// Password :=c.GetString("Password")
+	// NewPassword := c.GetString("NewPassword")
+	// if(Phone!=nil){
+	// 	user,err	 :=models.GetUserByPhone(Phone); if(err ==nil){
+			
+	// 	}else{
+
+	// 	}
+	// }else{
+	c.Data["json"]=ErrorResponse{Ok:false,Data:""}
+// }
+}
+
+
+	
+
