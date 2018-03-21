@@ -7,7 +7,11 @@ import (
 	"github.com/24wings/bangwei-api/models"
 	"strconv"
 	"strings"
+	"regexp"
+	// "github.com/24wings/bangwei-api/libs/apicloud/smssdk"
+	// "github.com/ltt1987/alidayu"
 
+	"github.com/ying32/alidayu"
 	"github.com/astaxie/beego"
 )
 
@@ -15,6 +19,13 @@ import (
 type UsersController struct {
 	beego.Controller
 }
+
+type ApiCloudKeyScret struct{
+	 ApiKey string
+	 ApiScret string
+}
+var KeyScret =ApiCloudKeyScret{ApiKey:"LTAIcMnaxxUG7dbk",ApiScret: "VhNgQZrGYz7dXpiCUS8r36mbLgy6db"}
+
 
 
 // URLMapping ...
@@ -193,37 +204,30 @@ func (c *UsersController) Signin(){
 
 
 func (c *UsersController) Signup(){
-	var postUser models.Users
+	Phone := c.GetString("Phone")
+	Password :=c.GetString("Password")
+	authPassword,_ :=	regexp.MatchString("^1[0-9]{10}$",Phone)
+	if(authPassword){
 	
+	userOld,err :=	models.GetUserByPhone(Phone)
 	
-	json.Unmarshal(c.Ctx.Input.RequestBody, &postUser)
-	userOld,err :=	models.GetUserByPhone(postUser.Phone)
-
-	
-	if(err!=nil){
-		if (userOld!=nil){
-			c.Data["json"]=ErrorResponse{Ok:false,Data:"该手机号已经注册+"}
-		
-		}else{
-		newUser,err	:=models.AddUsers(&postUser); if err==nil{
-			c.Data["json"] =newUser
-			
-		}else{
-			c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
+		if (userOld==nil || err !=nil ){
+			newUser,err	:=models.AddUsers(&models.Users{Phone:Phone,Password:Password}); if err==nil{
+				c.Data["json"] =newUser	
+			}else{
+				c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
 		}
-		
-
-			
-		}
-		
 	}else{
-		c.Data["json"]=err.Error()
-	   
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"该手机号已经注册+"}
+		}
+	}else{
+		c.Data["json"]=ErrorResponse{Ok:false,Data:"请输入正确的手机号"}
 	}
 	   
 	   
    	c.ServeJSON()
 }
+
 func (c *UsersController) ForgotPassword(){
 	// Phone :=c.GetString("Phone")
 	// Password :=c.GetString("Password")
@@ -241,4 +245,15 @@ func (c *UsersController) ForgotPassword(){
 
 
 	
-
+func (c *UsersController) SendMessage(){
+	Phone := c.GetString("Phone")
+	checkPhone,_	:=regexp.MatchString("^1[3-9][0-9]{10}$",Phone)
+	if(checkPhone==false){
+	c.Data["json"]=ErrorResponse{Ok:false,Data:"手机号码不合法"}
+}else{
+	success, resp,_ := alidayu.SendSMS("13419597065", "邦为科技", "SMS_127158851", `{"code":"1254"}`,KeyScret.ApiKey,KeyScret.ApiScret)
+	c.Data["json"]=ErrorResponse{Ok:success,Data:resp}
+}
+	c.ServeJSON()
+	return
+}

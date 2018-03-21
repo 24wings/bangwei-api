@@ -9,7 +9,7 @@ import (
 	_ "github.com/24wings/bangwei-api/routers"
 
 	"github.com/astaxie/beego"
-	. "github.com/smartystreets/goconvey/convey"
+	// . "github.com/smartystreets/goconvey/convey"
 )
 
 func init() {
