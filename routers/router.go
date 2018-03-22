@@ -22,6 +22,6 @@ func init() {
 	beego.Router("/fenxiao/user/signin",&controllers.UsersController{},"Post:Signin")
 	beego.Router("/fenxiao/user/signup",&controllers.UsersController{},"Post:Signup")
 	beego.Router("/fenxiao/user/forgot-password",&controllers.UsersController{},"Put:ForgotPassword")
-	beego.Router("/fenxiao/user/send-message",&controllers.UsersController{},"Get:SendMessage")
+	beego.Router("/fenxiao/user/user-auth-code",&controllers.UsersController{},"Get:SendMessage")
 
 }

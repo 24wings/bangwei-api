@@ -229,25 +229,45 @@ func (c *UsersController) Signup(){
 }
 
 func (c *UsersController) ForgotPassword(){
-	// Phone :=c.GetString("Phone")
-	// Password :=c.GetString("Password")
-	// NewPassword := c.GetString("NewPassword")
-	// if(Phone!=nil){
-	// 	user,err	 :=models.GetUserByPhone(Phone); if(err ==nil){
-			
-	// 	}else{
+	Phone :=c.GetString("Phone")
+	Password :=c.GetString("Password")
+	NewPassword := c.GetString("NewPassword")
+	AuthCode :=c.GetString("AuthCode")
+	checkPhone,_  := regexp.MatchString("^1[0-9]{9,}$",Phone)
+	// 检查用户格式
+	if(checkPhone){
+		user,err	 :=models.GetUserByPhone(Phone); if(err ==nil){
+		success,lastAuthCode,_	:=alidayu.QueryDetail(Phone,"","10","1","SMS_127158851",KeyScret.ApiKey,KeyScret.ApiScret)
+		if(success && lastAuthCode==AuthCode){
+			if(user.Password==Password){
+				// 修改密码
+				user.Password=NewPassword
+			updateErr :=	models.UpdateUsersById(user);if (updateErr==nil){
+			c.Data["json"]=ErrorResponse{Ok:true,Data:""}
+		}else{
+			c.Data["json"]=ErrorResponse{Ok:false,Data: updateErr.Error()}
 
-	// 	}
-	// }else{
-	c.Data["json"]=ErrorResponse{Ok:false,Data:""}
-// }
+		}
+	}else{
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"验证码错误"}
+		}
+}else{
+				c.Data["json"]=ErrorResponse{Ok:false,Data:"旧密码错误"}
+			}
+		}else{
+			c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
+		}
+	}else{
+	c.Data["json"]=ErrorResponse{Ok:false,Data:"请输入正确的手机号"}
+}
+c.ServeJSON()
 }
 
 
 	
 func (c *UsersController) SendMessage(){
 	Phone := c.GetString("Phone")
-	checkPhone,_	:=regexp.MatchString("^1[3-9][0-9]{10}$",Phone)
+	checkPhone,_	:=regexp.MatchString("^1[0-9]{10}$",Phone)
 	if(checkPhone==false){
 	c.Data["json"]=ErrorResponse{Ok:false,Data:"手机号码不合法"}
 }else{
