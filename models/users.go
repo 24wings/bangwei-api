@@ -19,11 +19,7 @@ type Users struct {
 }
 
 
-func init() {
-	orm.RegisterDataBase("default", "mysql", "root:root@/orm_test?charset=utf8")
-	// time.Date()
-	orm.RegisterModel(new(Users))
-}
+
 
 // AddUsers insert a new Users into database and returns
 // last inserted Id on success.
@@ -58,6 +54,7 @@ func GetUserByPhone(phone string)(v *Users,err error){
 func GetAllUsers(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	o := orm.NewOrm()
+	
 	qs := o.QueryTable(new(Users))
 	// query k=v
 	for k, v := range query {

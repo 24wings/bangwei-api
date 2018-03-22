@@ -16,12 +16,12 @@ func init() {
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
         AllowCredentials: true,
     }))
-	beego.Router("/", &controllers.MainController{})
-	beego.Router("/users",&controllers.UsersController{},"Get:GetAll;POST:Post;Put:Put")
-	beego.Router("/users/:id",&controllers.UsersController{},"*:GetOne")
-	beego.Router("/fenxiao/user/signin",&controllers.UsersController{},"Post:Signin")
-	beego.Router("/fenxiao/user/signup",&controllers.UsersController{},"Post:Signup")
-	beego.Router("/fenxiao/user/forgot-password",&controllers.UsersController{},"Put:ForgotPassword")
-	beego.Router("/fenxiao/user/user-auth-code",&controllers.UsersController{},"Get:SendMessage")
+	beego.Router("/", &controllers.ShopUserController{},"Get:GetAllShopUsers")
+	beego.Router("/users",&controllers.ShopUserController{},"Get:GetAll;POST:Post;Put:Put")
+	beego.Router("/users/:id",&controllers.ShopUserController{},"*:GetOne")
+	beego.Router("/fenxiao/shop-user/signin",&controllers.ShopUserController{},"Post:Signin")
+	beego.Router("/fenxiao/shop-user/signup",&controllers.ShopUserController{},"Post:Signup")
+	beego.Router("/fenxiao/user/forgot-password",&controllers.ShopUserController{},"Put:ForgotPassword")
+	beego.Router("/fenxiao/user/user-auth-code",&controllers.ShopUserController{},"Get:SendMessage")
 
 }
