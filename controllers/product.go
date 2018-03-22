@@ -142,7 +142,7 @@ func (c *ProductController) Put() {
 		c.Data["json"] = "OK"
 	} else {
 		c.Data["json"] = err.Error()
-	}
+ 	 }
 	c.ServeJSON()
 }
 

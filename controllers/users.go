@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	// "time"
 	"fmt"
 	"encoding/json"
 	"errors"
@@ -11,7 +12,7 @@ import (
 	// "github.com/24wings/bangwei-api/libs/apicloud/smssdk"
 	// "github.com/ltt1987/alidayu"
 
-	"github.com/ying32/alidayu"
+	"github.com/24wings/alidayu"
 	"github.com/astaxie/beego"
 )
 
@@ -24,6 +25,7 @@ type ApiCloudKeyScret struct{
 	 ApiKey string
 	 ApiScret string
 }
+
 var KeyScret =ApiCloudKeyScret{ApiKey:"LTAIcMnaxxUG7dbk",ApiScret: "VhNgQZrGYz7dXpiCUS8r36mbLgy6db"}
 
 
@@ -196,8 +198,7 @@ func (c *UsersController) Signin(){
 	}else{
 		c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
 	}
-	fmt.Println("en")
-	   
+	// fmt.Println("en")
 	   c.ServeJSON()
 	   return
 }
@@ -206,6 +207,7 @@ func (c *UsersController) Signin(){
 func (c *UsersController) Signup(){
 	Phone := c.GetString("Phone")
 	Password :=c.GetString("Password")
+	// AuthCode :=c.GetString("AuthCode")
 	authPassword,_ :=	regexp.MatchString("^1[0-9]{10}$",Phone)
 	if(authPassword){
 	
@@ -230,29 +232,32 @@ func (c *UsersController) Signup(){
 
 func (c *UsersController) ForgotPassword(){
 	Phone :=c.GetString("Phone")
-	Password :=c.GetString("Password")
+	// Password :=c.GetString("Password")
 	NewPassword := c.GetString("NewPassword")
 	AuthCode :=c.GetString("AuthCode")
 	checkPhone,_  := regexp.MatchString("^1[0-9]{9,}$",Phone)
 	// 检查用户格式
 	if(checkPhone){
 		user,err	 :=models.GetUserByPhone(Phone); if(err ==nil){
-		success,lastAuthCode,_	:=alidayu.QueryDetail(Phone,"","10","1","SMS_127158851",KeyScret.ApiKey,KeyScret.ApiScret)
-		if(success && lastAuthCode==AuthCode){
-			if(user.Password==Password){
-				// 修改密码
-				user.Password=NewPassword
-			updateErr :=	models.UpdateUsersById(user);if (updateErr==nil){
-			c.Data["json"]=ErrorResponse{Ok:true,Data:""}
+		// queryDt :=	time.Now().Format("20060102")
+		// fmt.Println(queryDt);
+		success,lastAuthCode,queryErr	:=alidayu.QueryDetail(Phone, "邦为科技","20180322","SMS_127158851",KeyScret.ApiKey,KeyScret.ApiScret); if(success){
+			fmt.Println(lastAuthCode)
+			c.Data["json"]=lastAuthCode
 		}else{
-			c.Data["json"]=ErrorResponse{Ok:false,Data: updateErr.Error()}
-
+			c.Data["json"]=ErrorResponse{Ok:false,Data:queryErr}
+			fmt.Println("success...",success,lastAuthCode,queryErr)
 		}
+		if(success &&lastAuthCode.OutId==AuthCode){
+			user.Password=NewPassword
+			updateErr :=	models.UpdateUsersById(user);if (updateErr==nil){
+			c.Data["json"]=ErrorResponse{Ok:true,Data:"修改密码成功"}
+		
 	}else{
-			c.Data["json"]=ErrorResponse{Ok:false,Data:"验证码错误"}
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"旧密码错误"}
 		}
 }else{
-				c.Data["json"]=ErrorResponse{Ok:false,Data:"旧密码错误"}
+				c.Data["json"]=ErrorResponse{Ok:false,Data:lastAuthCode.OutId}
 			}
 		}else{
 			c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
@@ -271,7 +276,7 @@ func (c *UsersController) SendMessage(){
 	if(checkPhone==false){
 	c.Data["json"]=ErrorResponse{Ok:false,Data:"手机号码不合法"}
 }else{
-	success, resp,_ := alidayu.SendSMS("13419597065", "邦为科技", "SMS_127158851", `{"code":"1254"}`,KeyScret.ApiKey,KeyScret.ApiScret)
+	success, resp,_ := alidayu.SendSMS(Phone, "邦为科技", "SMS_127158851", `1234`,KeyScret.ApiKey,KeyScret.ApiScret)
 	c.Data["json"]=ErrorResponse{Ok:success,Data:resp}
 }
 	c.ServeJSON()

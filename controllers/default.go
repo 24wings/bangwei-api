@@ -25,3 +25,6 @@ type UserResponse struct{
 	Ok bool
 	Data *models.Users
 }
+type MsgResponse struct{
+	Ok bool
+}
