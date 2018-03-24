@@ -34,7 +34,7 @@ func AddUsers(m *Users) (id int64, err error) {
 func GetUsersById(id int64) (v *Users, err error) {
 	o := orm.NewOrm()
 	v = &Users{Id: id}
-	if err = o.QueryTable(new(Users)).Filter("id", id).RelatedSel().One(v); err == nil {
+	if err = o.QueryTable(new(Users)).Filter("Id", id).RelatedSel().One(v); err == nil {
 		return v, nil
 	}
 	return nil, err
@@ -126,7 +126,7 @@ func GetAllUsers(query map[string]string, fields []string, sortby []string, orde
 
 // UpdateUsers updates Users by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateUsersById(m *Users) (err error) {
+func (this Users) UpdateUsersById(m *Users) (err error) {
 	o := orm.NewOrm()
 	v := Users{Id: m.Id}
 	// ascertain id exists in the database

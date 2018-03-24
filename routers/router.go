@@ -10,18 +10,22 @@ import (
 func init() {
 	// 这段代码放在router.go文件的init()的开头
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
-        AllowAllOrigins:  true,
+		// AllowAllOrigins:  true,
+		AllowOrigins:[]string{"http://localhost:4200"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
         AllowCredentials: true,
-    }))
-	beego.Router("/", &controllers.ShopUserController{},"Get:GetAllShopUsers")
-	beego.Router("/users",&controllers.ShopUserController{},"Get:GetAll;POST:Post;Put:Put")
-	beego.Router("/users/:id",&controllers.ShopUserController{},"*:GetOne")
-	beego.Router("/fenxiao/shop-user/signin",&controllers.ShopUserController{},"Post:Signin")
-	beego.Router("/fenxiao/shop-user/signup",&controllers.ShopUserController{},"Post:Signup")
-	beego.Router("/fenxiao/user/forgot-password",&controllers.ShopUserController{},"Put:ForgotPassword")
+	}))
+	
+	beego.Router("/fenxiao/shop-user/signin",&controllers.ShopUserController{},"Post:ShopUserSignin")
+	beego.Router("/fenxiao/shop-user/signup",&controllers.ShopUserController{},"Post:ShopUserSignup")
+	beego.Router("/fenxaio/fenxaio-user/signup",&controllers.FenxiaoUserController{},"Post:FenxiaoUserSignup")
+	beego.Router("/fenxiao/shop-user/forgot-password",&controllers.ShopUserController{},"Put:ForgotShopUserPassword")
 	beego.Router("/fenxiao/user/user-auth-code",&controllers.ShopUserController{},"Get:SendMessage")
-
+	beego.Router("/fenxiaoadmin/allfenxiaousers",&controllers.FenxiaoAdminController{},"Get:AllFenxiaoUsers")
+	
+	beego.AutoRouter(&controllers.FenxiaoUserController{})
+	// beego.AutoRouter(&controllers.FenxiaoAdminController{})
+	
 }

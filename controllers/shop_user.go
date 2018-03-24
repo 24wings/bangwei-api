@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"time"
 	// "time"
+	// "json"
 	"fmt"
 	"encoding/json"
 	"errors"
@@ -9,18 +11,16 @@ import (
 	"strconv"
 	"strings"
 	"regexp"
-	// "github.com/24wings/bangwei-api/libs/apicloud/smssdk"
-	// "github.com/ltt1987/alidayu"
-
 	"github.com/24wings/alidayu"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
-//  UsersController operations for Users
+
 type ShopUserController struct {
 	beego.Controller
 }
+
 
 type ApiCloudKeyScret struct{
 	 ApiKey string
@@ -52,7 +52,8 @@ func (c *ShopUserController) URLMapping() {
 func (c *ShopUserController) Post() {
 	var v models.Users
 	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
-	if _, err := models.AddUsers(&v); err == nil {
+	// c.par
+	 _, err := models.AddUsers(&v);if err == nil {
 		c.Ctx.Output.SetStatus(201)
 		c.Data["json"] = v
 	} else { 
@@ -143,27 +144,6 @@ func (c *ShopUserController) GetAll() {
 	c.ServeJSON()
 }
 
-// Put ...
-// @Title Put
-// @Description update the Users
-// @Param	id		path 	string	true		"The id you want to update"
-// @Param	body		body 	models.Users	true		"body for Users content"
-// @Success 200 {object} models.Users
-// @Failure 403 :id is not int
-// @router /:id [put]
-func (c *ShopUserController) Put() {
-	// idStr := c.Ctx.Input.Param(":id")
-	// id, _ := strconv.ParseInt(idStr, 0, 64)
-	v  := models.Users{}
-
-	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
-	if err := models.UpdateUsersById(&v); err == nil {
-		c.Data["json"] = "OK"
-	} else {
-		c.Data["json"] = err.Error()
-	}
-	c.ServeJSON()
-}
 
 // Delete ...
 // @Title Delete
@@ -184,53 +164,57 @@ func (c *ShopUserController) Delete() {
 }
 
 func (c *ShopUserController) ShopUserSignin(){
-	fmt.Println("signin")
-	Phone :=c.GetString("Phone");
-	Password := c.GetString("Password")
-	v,err :=	models.GetUserByPhone(Phone)
-	
-	if(err == nil){
-		if (v!=nil && v.Password== Password){	
-			c.Data["json"] =UserResponse{Ok:true,Data:v}
+	loginShopUser := models.ShopUser{}
+	json.Unmarshal(c.Ctx.Input.RequestBody,&loginShopUser)
+	c.ParseForm(&loginShopUser)
+	// fmt.Println("Phone:",Phone)
+
+	v,err :=	models.ShopUserService.GetShopUserByPhone(loginShopUser.Phone); if err == nil{
+		if (v.Password== loginShopUser.Password){	
+			c.Data["json"] =ShopUserResponse{Ok:true,Data:v}
 		}else{
-			c.Data["json"]=ErrorResponse{Ok:true,Data:"用户名或密码错误"}
-		}
-	
-	}else{
-		c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"用户名或密码错误"}
 	}
-	// fmt.Println("en")
+	}else{
+		c.Data["json"]=ErrorResponse{Ok:false,Data:"用户名不存在"}	
+	}
 	   c.ServeJSON()
 	   return
 }
 
 
-func (c *ShopUserController) Signup(){
-	Phone := c.GetString("Phone")
-	Password :=c.GetString("Password")
-	// AuthCode :=c.GetString("AuthCode")
-	authPassword,_ :=	regexp.MatchString("^1[0-9]{10}$",Phone)
+func (c *ShopUserController) ShopUserSignup(){
+	AuthCode := c.GetString("AuthCode")
+	var newShopUser  models.ShopUser
+	c.ParseForm(&newShopUser);
+	json.Unmarshal(c.Ctx.Input.RequestBody, &newShopUser)
+	fmt.Println(newShopUser.Phone,AuthCode)
+	authPassword,_ :=	regexp.MatchString("^1[0-9]{10}$",newShopUser.Phone)
+
 	if(authPassword){
-		var userOld,err = models.ShopUser.GetShopUserByPhone(Phone);
-		// userOld,err :=	model
-		if (err==nil){
-			newUser,err	:=models.AddUsers(&models.Users{Phone:Phone,Password:Password}); if err==nil{
-				c.Data["json"] =newUser	
-			}else{
-				c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
+		nowStr := time.Now().Format("20060102")
+		_,err :=	models.ShopUserService.GetShopUserByPhone(newShopUser.Phone); if err != nil  {
+		success,detail,_	:=alidayu.QueryDetail(newShopUser.Phone, "邦为科技",nowStr,"SMS_127158851",KeyScret.ApiKey,KeyScret.ApiScret); if (success==true && detail.OutId==newShopUser.AuthCode){
+			newUser,err	:=models.ShopUserService.AddShopUser(&newShopUser); if err==nil{
+				c.Data["json"] =NumberResponse{Ok:true,Data:newUser}	
+		}else{
+			c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
 		}
+			
+			}else{
+				c.Data["json"]=ErrorResponse{Ok:false,Data:"验证码错误"}
+		}
+		fmt.Println(detail)
 	}else{
-			c.Data["json"]=ErrorResponse{Ok:false,Data:"该手机号已经注册+"}
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"该手机已经注册"}
 		}
 	}else{
 		c.Data["json"]=ErrorResponse{Ok:false,Data:"请输入正确的手机号"}
 	}
-	   
-	   
    	c.ServeJSON()
 }
 
-func (c *ShopUserController) ForgotPassword(){
+func (c *ShopUserController) ForgotShopUserPassword(){
 	Phone :=c.GetString("Phone")
 	// Password :=c.GetString("Password")
 	NewPassword := c.GetString("NewPassword")
@@ -238,29 +222,24 @@ func (c *ShopUserController) ForgotPassword(){
 	checkPhone,_  := regexp.MatchString("^1[0-9]{9,}$",Phone)
 	// 检查用户格式
 	if(checkPhone){
-		user,err	 :=models.ShopUser (Phone); if(err ==nil){
-		// queryDt :=	time.Now().Format("20060102")
-		// fmt.Println(queryDt);
-		success,lastAuthCode,queryErr	:=alidayu.QueryDetail(Phone, "邦为科技","20180322","SMS_127158851",KeyScret.ApiKey,KeyScret.ApiScret); if(success){
-			fmt.Println(lastAuthCode)
-			c.Data["json"]=lastAuthCode
-		}else{
-			c.Data["json"]=ErrorResponse{Ok:false,Data:queryErr}
-			fmt.Println("success...",success,lastAuthCode,queryErr)
-		}
-		if(success &&lastAuthCode.OutId==AuthCode){
+		nowStr :=time.Now().Format("20060102")
+		
+		user,err	 :=models.ShopUserService.GetShopUserByPhone(Phone); if(err ==nil){
+		success,lastAuthCode,queryErr	:=alidayu.QueryDetail(Phone, "邦为科技",nowStr,"SMS_127158851",KeyScret.ApiKey,KeyScret.ApiScret); if(success && lastAuthCode.OutId==AuthCode){
 			user.Password=NewPassword
-			updateErr :=	models.UpdateUsersById(user);if (updateErr==nil){
+			updateErr :=	models.ShopUserService.UpdateShopUserById(&user);if (updateErr==nil){
 			c.Data["json"]=ErrorResponse{Ok:true,Data:"修改密码成功"}
 		
-	}else{
-			c.Data["json"]=ErrorResponse{Ok:false,Data:"旧密码错误"}
-		}
-}else{
-				c.Data["json"]=ErrorResponse{Ok:false,Data:lastAuthCode.OutId}
-			}
 		}else{
 			c.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
+			fmt.Println("success...",success,lastAuthCode,queryErr)
+		}
+			
+}else{
+				c.Data["json"]=ErrorResponse{Ok:false,Data:"验证码错误"}
+			}
+		}else{
+			c.Data["json"]=ErrorResponse{Ok:false,Data:"用户不存在"}
 		}
 	}else{
 	c.Data["json"]=ErrorResponse{Ok:false,Data:"请输入正确的手机号"}

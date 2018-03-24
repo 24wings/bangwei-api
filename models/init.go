@@ -6,8 +6,8 @@ import (
 
 func init() {
 	orm.RegisterDataBase("default", "mysql", "root:root@/orm_test?charset=utf8")
-	// time.Date()
 	orm.RegisterModel(new(ShopUser))
 	orm.RegisterModel(new(FenxiaoUser))
+	orm.RegisterModel(new (ShopRecord))
 	
 }
