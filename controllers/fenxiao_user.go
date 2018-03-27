@@ -81,7 +81,11 @@ func (this *FenxiaoUserController) FenxiaoUserForgotPassword(){
 			this.Data["json"]=ErrorResponse{Ok:false,Data:err.Error()}
 		}
 		}else{
-			this.Data["json"]=ErrorResponse{Ok:false,Data:"验证码错误"}
+			result:=struct {
+				Ok bool
+				Data string
+			}{false,""}
+			this.Data["json"]=result
 		}
 	}else{
 		this.Data["json"] = ErrorResponse{Ok:false,Data:"该手机号尚未注册"}
